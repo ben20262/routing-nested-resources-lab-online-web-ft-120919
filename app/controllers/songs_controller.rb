@@ -1,10 +1,28 @@
+require 'pry'
 class SongsController < ApplicationController
   def index
-    @songs = Song.all
+    if params[:artist_id]
+      if params[:artist_id].to_i > Artist.maximum('id') || params[:artist_id].to_i < 1
+        flash[:alert] = "Artist not found"
+        redirect_to artists_path 
+      else
+        @songs = Artist.find(params[:artist_id]).songs
+      end
+    else
+      @songs = Song.all
+    end
   end
 
   def show
-    @song = Song.find(params[:id])
+    if params[:artist_id]
+      @song = Song.find_by(id: params[:id], artist_id: params[:artist_id])
+    else
+      @song = Song.find(params[:id])
+    end
+    if !@song
+      flash[:alert] = "Song not found"
+      redirect_to artist_songs_path(params[:artist_id])
+    end
   end
 
   def new
